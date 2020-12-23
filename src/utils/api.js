@@ -54,9 +54,6 @@ export const postRequest = (url, params) => {
         method: 'post',
         url: `${base}${url}`,
         data: params,
-        headers:{
-            'Content-Type': 'application/json'
-        }
     })
 }
 export const putRequest = (url, params) => {
@@ -74,14 +71,6 @@ export const getRequest = (url, params) => {
     })
 }
 export const deleteRequest = (url, params) => {
-    return axios({
-        method: 'delete',
-        url: `${base}${url}`,
-        params: params
-    })
-}
-
-export const testRequest = (url, params) => {
     return axios({
         method: 'delete',
         url: `${base}${url}`,

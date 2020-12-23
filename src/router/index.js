@@ -4,7 +4,7 @@ import Login from '../views/Login.vue'
 import Home from '../views/Home'
 import proBasic from '../views/pro/proBasic'
 import saleRecord from "@/views/sale/saleRecord";
-import customerBasic from "../views/customer/costomerBasic";
+import customerBasic from "../views/customer/customerBasic";
 
 Vue.use(VueRouter)
 

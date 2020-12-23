@@ -14,13 +14,15 @@
            aria-hidden="true"></i>
         高级搜索
       </el-button>
+      <el-button round style="margin-left: 500px" @click="addProduct">新增</el-button>
       <transition name="slide-fade">
         <div v-show="showAdvanceSearchView"
              style="border: 1px solid #409eff;border-radius: 5px;box-sizing: border-box;padding: 5px;margin: 10px 0px;">
           <el-row>
             <el-col :span="5">
               商品名称:
-              <el-input v-model="advanceSearch.pName" placeholder="请输入内容" style="width: 150px" size="small"></el-input>
+              <el-input v-model="advanceSearch.productName" placeholder="请输入内容" style="width: 150px"
+                        size="small"></el-input>
             </el-col>
             <el-col :span="5">
               商品类别:
@@ -47,12 +49,12 @@
               >
               </el-date-picker>
             </el-col>
-
           </el-row>
         </div>
       </transition>
     </div>
     <el-table
+        @row-click="openDetails"
         :data="tableData"
         border
         style="width: 100%">
@@ -60,10 +62,10 @@
           fixed
           prop="id"
           label="编号"
-          width="50">
+          width="100">
       </el-table-column>
       <el-table-column
-          prop="pname"
+          prop="productName"
           label="名称"
           width="300">
       </el-table-column>
@@ -93,11 +95,6 @@
           width="120">
       </el-table-column>
       <el-table-column
-          prop="pAddress"
-          label="生产地址"
-          width="120">
-      </el-table-column>
-      <el-table-column
           prop="shop"
           label="生产厂家"
           width="120">
@@ -108,17 +105,22 @@
           width="120">
       </el-table-column>
       <el-table-column
+          prop="productAddress"
+          label="生产地址"
+          width="120">
+      </el-table-column>
+      <el-table-column
           prop="zip"
           label="备注"
-          width="120">
+          width="70">
       </el-table-column>
       <el-table-column
           fixed="right"
           label="操作"
           width="100">
         <template slot-scope="scope">
-          <el-button @click="dialogTableVisible = true" type="text" size="small">编辑</el-button>
-          <el-button type="text" size="small">删除</el-button>
+          <el-button @click="editClick(scope.row)" type="text" size="small">编辑</el-button>
+          <el-button @click="deleteClick(scope.row)" type="text" size="small">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -138,17 +140,17 @@
         <el-row>
           <el-col :span="10">
             <el-form-item label="商品名称">
-              <el-input v-model="form.name"></el-input>
+              <el-input v-model="form.productName"></el-input>
             </el-form-item>
           </el-col>
-          <el-col :span="6">
+          <el-col :span="6" v-show="isNeedId">
             <el-form-item label="商品编号">
-              <el-input v-model="form.name"></el-input>
+              <el-input v-model="form.id"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="7">
             <el-form-item label="商品类别">
-              <el-select v-model="form.region" placeholder="请选择类别">
+              <el-select v-model="form.type" placeholder="请选择类别">
                 <el-option label="区域一" value="shanghai"></el-option>
                 <el-option label="区域二" value="beijing"></el-option>
               </el-select>
@@ -158,40 +160,45 @@
         <el-row>
           <el-col :span="6">
             <el-form-item label="进价">
-              <el-input v-model="form.name"></el-input>
+              <el-input v-model="form.purchasePrice"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="6">
             <el-form-item label="单价">
-              <el-input v-model="form.name"></el-input>
+              <el-input v-model="form.price"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="6">
             <el-form-item label="库存">
-              <el-input v-model="form.name"></el-input>
+              <el-input v-model="form.stock"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="6">
             <el-form-item label="销量">
-              <el-input v-model="form.name"></el-input>
+              <el-input v-model="form.sale"></el-input>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <el-col :span="10">
             <el-form-item label="生产地址">
-              <el-input v-model="form.name"></el-input>
+              <el-input v-model="form.productAddress"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="6">
             <el-form-item label="生产厂家">
-              <el-input v-model="form.name"></el-input>
+              <el-input v-model="form.shop"></el-input>
             </el-form-item>
           </el-col>
         </el-row>
         <el-form-item label="入库时间">
           <el-col :span="11">
-            <el-date-picker type="date" placeholder="选择日期" v-model="form.date1" style="width: 100%;"></el-date-picker>
+            <el-date-picker
+                v-model="form.storageTime"
+                type="datetime"
+                value-format="yyyy-MM-dd HH:mm:ss"
+                placeholder="选择日期时间">
+            </el-date-picker>
           </el-col>
         </el-form-item>
         <el-form-item label="备注">
@@ -199,7 +206,7 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="onSubmit">完成</el-button>
-          <el-button>取消</el-button>
+          <el-button @click="dialogTableVisible=false">取消</el-button>
         </el-form-item>
       </el-form>
     </el-dialog>
@@ -207,6 +214,8 @@
 </template>
 
 <script>
+
+
 export default {
   name: "proBasic",
 
@@ -218,11 +227,11 @@ export default {
       if (this.advanceSearch.type) {
         url += "&type=" + this.advanceSearch.type;
       }
-      if (this.advanceSearch.pName) {
-        url += "&pName=" + this.advanceSearch.pName;
+      if (this.advanceSearch.productName) {
+        url += "&productName=" + this.advanceSearch.productName;
       }
-      if (this.advanceSearch.searchValue) {
-        url += "&searchValue=" + this.advanceSearch.searchValue;
+      if (this.searchValue) {
+        url += "&searchValue=" + this.searchValue;
       }
       if (this.advanceSearch.stock) {
         url += "&stock=" + (this.advanceSearch.stock == 1 ? "asc" : "desc");
@@ -237,10 +246,50 @@ export default {
       })
     },
 
-    handleClick(row) {
-      console.log(row);
+    //表格点击详情
+    openDetails(row,column){
+      console.log("表格点击详情")
+      console.log(row)
+    },
+    //新增操作
+    addProduct() {
+      this.isNeedId = false;
+      this.dialogTableVisible = true;
+      this.form = {};
     },
 
+    //编辑查看操作
+    editClick(row) {
+      this.dialogTableVisible = true;
+      //查询数据
+      this.getRequest('/productBasic/edit/' + row.id).then(resp => {
+        if (resp) {
+          this.form = resp.data;
+        }
+      })
+    },
+    //删除操作
+    deleteClick(row) {
+      this.$confirm('此操作将永久删除【' + row.productName + '】, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.deleteRequest("/productBasic/delete/" + row.id).then(resp => {
+          if (resp) {
+            if (resp.isFlag) {
+              //重新渲染数据
+              this.refresh();
+            }
+          }
+        })
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        });
+      });
+    },
     //改变分页的大小
     handleSizeChange(val) {
       this.pageSize = val;
@@ -270,15 +319,28 @@ export default {
         }
       })
     },
-
+    //提交插入/更新的商品信息
     onSubmit() {
-      console.log("onSubmit");
+      this.postRequest('/productBasic/insertOrUpdate', this.form).then(resp => {
+        if (resp) {
+            if (resp.isFlag){
+              this.dialogTableVisible=false;
+              this.$message("商品信息更新成功");
+              this.refresh();
+            }
+        }
+      })
     },
     // 渲染分页请求数据
     showPageData(data) {
       this.tableData = data.data.dataList;
       this.total = data.data.total;
       console.log(data);
+    },
+    // 刷新列表
+    refresh(){
+      this.advanceSearch.stock="";
+      this.search();
     }
   },
 
@@ -294,16 +356,14 @@ export default {
 
   created() {
     // 获取列表数据
-    this.getRequest('/productBasic/', null).then(resp => {
-      if (resp) {
-        //渲染分页数据
-        this.showPageData(resp);
-      }
-    })
+    this.refresh();
   },
 
   data() {
     return {
+      //dom元素编号
+      isNeedId: true,
+
       //tableData分页
       currentPage: 1,
       pageSize: 10,
@@ -313,9 +373,9 @@ export default {
       searchValue: "",
       //高级搜索条件
       advanceSearch: {
-        pName: "",
+        productName: "",
         shop: "",
-        pAddress: "",
+        productAddress: "",
         storageTimeRange: "",
         type: "",
         stock: "1"
@@ -334,14 +394,17 @@ export default {
       dialogTableVisible: false,
       // formLabelWidth: '300px',
       form: {
-        name: '',
-        region: '',
-        date1: '',
-        date2: '',
-        delivery: false,
-        type: [],
-        resource: '',
-        desc: ''
+        id: '',
+        productName: '',
+        storageTime: '',
+        stock: '',
+        type: '',
+        shop: '',
+        price: '',
+        purchasePrice: '',
+        productAddress: '',
+        image: '',
+        sale: ''
       },
 
       tableData: [],

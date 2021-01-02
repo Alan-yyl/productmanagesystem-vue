@@ -8,12 +8,13 @@
           style="width: 350px;margin:10px 0"
       >
       </el-input>
-      <el-button round style="margin-left: 10px" @click="search">搜索</el-button>
+      <el-button round style="margin-left: 10px" @click="search(true)">搜索</el-button>
       <el-button round @click="showAdvanceSearchView = !showAdvanceSearchView">
         <i :class="showAdvanceSearchView?'fa fa-angle-double-up':'fa fa-angle-double-down'"
            aria-hidden="true"></i>
         高级搜索
       </el-button>
+      <el-button round style="margin-left: 10px" @click="searchConditionReset">重置</el-button>
       <transition name="slide-fade">
         <div v-show="showAdvanceSearchView"
              style="border: 1px solid #409eff;border-radius: 5px;box-sizing: border-box;padding: 5px;margin: 10px 0px;">
@@ -30,19 +31,6 @@
             </el-col>
             <el-col :span="10">
               交易时间:
-<!--              <el-date-picker-->
-<!--                  v-model="advanceSearch.saleTime"-->
-<!--                  type="datetime"-->
-<!--                  :picker-options="pickerOptions"-->
-<!--                  range-separator="至"-->
-<!--                  start-placeholder="开始日期"-->
-<!--                  end-placeholder="结束日期"-->
-<!--                  align="right"-->
-<!--                  style="width: 350px"-->
-<!--                  size="small"-->
-<!--                  value-format="yyyy-MM-dd HH:mm:ss"-->
-<!--              >-->
-<!--              </el-date-picker>-->
               <el-date-picker
                   v-model="advanceSearch.saleTime"
                   type="datetimerange"
@@ -115,7 +103,7 @@
           :total="total">
       </el-pagination>
     </div>
-    <el-dialog title="商品信息" :visible.sync="dialogTableVisible" width="80%">
+    <el-dialog title="销售信息" :visible.sync="dialogTableVisible" width="80%">
       <el-form ref="form" :model="form" label-width="80px">
         <el-row>
           <el-col :span="10">
@@ -164,15 +152,29 @@
 export default {
   name: "saleRecord",
 
+
   methods: {
+
+    searchConditionReset(){
+      this.searchValue="";
+
+      this.advanceSearch={
+        productName: "",
+        customerName: "",
+        saleTime: "",
+      };
+
+      this.search();
+    },
+
     //搜索
-    search(pageNum, pageSize) {
+    search(reset) {
       let url = "";
-      if (pageNum && pageSize) {
-        url = "/saleRecord/?pageNum=" + pageNum + "&pageSize=" + pageSize;
-      } else {
-        url = "/saleRecord/?pageNum=" + this.currentPage + "&pageSize=" + this.pageSize;
+      if (reset) {
+        this.currentPage=1;
       }
+
+      url = "/saleRecord/?pageNum=" + this.currentPage + "&pageSize=" + this.pageSize;
 
       if (this.searchValue) {
         url += "&searchValue=" + this.searchValue;
@@ -243,11 +245,13 @@ export default {
     },
     //改变分页的大小
     handleSizeChange(val) {
-      this.search(this.currentPage,val)
+      this.pageSize=val;
+      this.search(false)
     },
     //改变页码
     handleCurrentChange(val) {
-      this.search(val,this.pageSize);
+      this.currentPage=val;
+      this.search(false);
     },
     //提交插入/更新的商品信息
     onSubmit() {
@@ -255,7 +259,7 @@ export default {
         if (resp) {
           if (resp.isFlag) {
             this.dialogTableVisible = false;
-            this.$message("商品信息更新成功");
+            this.$message("销售记录信息更新成功");
             this.refresh();
           }
         }
@@ -268,7 +272,7 @@ export default {
     },
     // 刷新列表
     refresh() {
-      this.search();
+      this.search(true);
     }
   },
 
@@ -276,7 +280,7 @@ export default {
     //销量排序开关改变，对列表重新排序
     "advanceSearch.stock": {
       handler(curVal) {
-        this.search();
+        this.search(true);
       }
     }
   },
@@ -289,6 +293,8 @@ export default {
 
   data() {
     return {
+      reset:true,
+
       //销售记录对象
       saleRecord:{},
 

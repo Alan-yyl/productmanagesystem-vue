@@ -62,14 +62,18 @@
 export default {
   name: 'Home',
   methods: {
-    methodHandler () {
-      console.log('methodsHandler')
+    methodHandler (command) {
+      if (command=="logout"){
+        this.logout();
+      }
     },
     menuClick (index, indexPath) {
       console.log(index)
       console.log(indexPath)
     },
     logout () {
+      //重定向到登录
+      this.$router.replace("/login");
     },
     userInfo () {
     },

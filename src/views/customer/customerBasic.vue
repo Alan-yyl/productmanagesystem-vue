@@ -8,13 +8,14 @@
           style="width: 350px;margin:10px 0"
       >
       </el-input>
-      <el-button round style="margin-left: 10px" @click="search">搜索</el-button>
+      <el-button round style="margin-left: 10px" @click="search(true)">搜索</el-button>
       <el-button round @click="showAdvanceSearchView = !showAdvanceSearchView">
         <i :class="showAdvanceSearchView?'fa fa-angle-double-up':'fa fa-angle-double-down'"
            aria-hidden="true"></i>
         高级搜索
       </el-button>
-      <el-button round style="margin-left: 500px" @click="addProduct">新增</el-button>
+      <el-button round style="margin-left: 10px" @click="searchConditionReset">重置</el-button>
+      <el-button round style="margin-left: 400px" @click="addProduct">新增</el-button>
       <transition name="slide-fade">
         <div v-show="showAdvanceSearchView"
              style="border: 1px solid #409eff;border-radius: 5px;box-sizing: border-box;padding: 5px;margin: 10px 0px;">
@@ -109,9 +110,24 @@ export default {
   name: "customerBasic",
 
   methods: {
+    searchConditionReset(){
+      this.searchValue= "";
+      //高级搜索条件
+      this.advanceSearch={
+        personName: "",
+        address: ""
+      };
+      this.refresh();
+    },
+
     //搜索
-    search() {
+    search(reset) {
+      if (reset){
+        this.currentPage=1;
+      }
+
       let url = "/customerBasic/?pageNum=" + this.currentPage + "&pageSize=" + this.pageSize;
+
 
       if (this.advanceSearch.personName) {
         url += "&personName=" + this.advanceSearch.personName;
@@ -176,31 +192,12 @@ export default {
     //改变分页的大小
     handleSizeChange(val) {
       this.pageSize = val;
-      let param = {
-        "pageNum": this.currentPage,
-        "pageSize": this.pageSize,
-        "searchValue": this.searchValue
-      }
-      this.getRequest('/customerBasic/', param).then(resp => {
-        if (resp) {
-          this.tableData = resp.data.dataList;
-        }
-      })
+      this.search(false);
     },
     //改变页码
     handleCurrentChange(val) {
       this.currentPage = val;
-      let param = {
-        "pageNum": this.currentPage,
-        "pageSize": this.pageSize,
-        "searchValue": this.searchValue
-      }
-      this.getRequest('/customerBasic/', param).then(resp => {
-        if (resp) {
-          this.tableData = resp.data.dataList;
-          console.log(resp);
-        }
-      })
+     this.search(false);
     },
     //提交插入/更新的商品信息
     onSubmit() {
@@ -208,7 +205,7 @@ export default {
         if (resp) {
           if (resp.isFlag){
             this.dialogTableVisible=false;
-            this.$message("商品信息更新成功");
+            this.$message("客户信息更新成功");
             this.refresh();
           }
         }
@@ -222,7 +219,7 @@ export default {
     },
     // 刷新列表
     refresh(){
-      this.search();
+      this.search(false);
     }
   },
 

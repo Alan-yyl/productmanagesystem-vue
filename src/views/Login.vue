@@ -43,14 +43,14 @@ export default {
             // 参数合法，valid=true
             if (valid) {
               // 发送登录请求
-              this.postRequest("doLogin", this.loginForm).then(resp => {
+              this.postRequest("/doLogin/", this.loginForm).then(resp => {
                 if (resp) {
-                  // 将JSON字符串转为JSON对象
-                  let user = JSON.stringify(resp.obj);
-                  // 向store中存入当前HR的信息
-                  this.$store.commit("INIT_CURRENTHR", resp.obj);
-                  // 向session中存入当前用户的信息
-                  window.sessionStorage.setItem("user", JSON.stringify());
+                  // // 将JSON字符串转为JSON对象
+                  // let user = JSON.stringify(resp.obj);
+                  // // 向store中存入当前HR的信息
+                  // this.$store.commit("INIT_CURRENTHR", resp.obj);
+                  // // 向session中存入当前用户的信息
+                  // window.sessionStorage.setItem("user", JSON.stringify());
                   // 重定向路径
                   let path = this.$route.query.redirect;
                   // 路径跳转

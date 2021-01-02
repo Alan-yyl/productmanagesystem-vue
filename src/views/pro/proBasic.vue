@@ -8,13 +8,14 @@
           style="width: 350px;margin:10px 0"
       >
       </el-input>
-      <el-button round style="margin-left: 10px" @click="search">搜索</el-button>
+      <el-button round style="margin-left: 10px" @click="search(true)">搜索</el-button>
       <el-button round @click="showAdvanceSearchView = !showAdvanceSearchView">
         <i :class="showAdvanceSearchView?'fa fa-angle-double-up':'fa fa-angle-double-down'"
            aria-hidden="true"></i>
         高级搜索
       </el-button>
-      <el-button round style="margin-left: 500px" @click="addProduct">新增</el-button>
+      <el-button round style="margin-left: 10px" @click="searchConditionReset">重置</el-button>
+      <el-button round style="margin-left: 400px" @click="addProduct">新增</el-button>
       <transition name="slide-fade">
         <div v-show="showAdvanceSearchView"
              style="border: 1px solid #409eff;border-radius: 5px;box-sizing: border-box;padding: 5px;margin: 10px 0px;">
@@ -29,7 +30,7 @@
               <el-input v-model="advanceSearch.type" placeholder="请输入内容" style="width: 150px" size="small"></el-input>
             </el-col>
             <el-col :span="4" style="margin-top: 3px">
-              销量:
+              库存:
               <el-radio size="small" v-model="advanceSearch.stock" label="1">升序</el-radio>
               <el-radio size="small" v-model="advanceSearch.stock" label="2">降序</el-radio>
             </el-col>
@@ -110,11 +111,6 @@
           width="120">
       </el-table-column>
       <el-table-column
-          prop="zip"
-          label="备注"
-          width="70">
-      </el-table-column>
-      <el-table-column
           fixed="right"
           label="操作"
           width="100">
@@ -145,15 +141,12 @@
           </el-col>
           <el-col :span="6" v-show="isNeedId">
             <el-form-item label="商品编号">
-              <el-input v-model="form.id"></el-input>
+              <el-input v-model="form.id" :disabled="true"></el-input>
             </el-form-item>
           </el-col>
           <el-col :span="7">
             <el-form-item label="商品类别">
-              <el-select v-model="form.type" placeholder="请选择类别">
-                <el-option label="区域一" value="shanghai"></el-option>
-                <el-option label="区域二" value="beijing"></el-option>
-              </el-select>
+              <el-input v-model="form.type"></el-input>
             </el-form-item>
           </el-col>
         </el-row>
@@ -201,9 +194,6 @@
             </el-date-picker>
           </el-col>
         </el-form-item>
-        <el-form-item label="备注">
-          <el-input type="textarea" v-model="form.desc"></el-input>
-        </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="onSubmit">完成</el-button>
           <el-button @click="dialogTableVisible=false">取消</el-button>
@@ -220,8 +210,26 @@ export default {
   name: "proBasic",
 
   methods: {
+    searchConditionReset(){
+      this.searchValue= "";
+      //高级搜索条件
+      this.advanceSearch={
+          productName: "",
+          shop: "",
+          productAddress: "",
+          storageTimeRange: "",
+          type: "",
+          stock: "1"
+      };
+      this.refresh();
+    },
+
     //搜索
-    search() {
+    search(reset) {
+      if (reset){
+        this.currentPage=1;
+      }
+
       let url = "/productBasic/?pageNum=" + this.currentPage + "&pageSize=" + this.pageSize;
 
       if (this.advanceSearch.type) {
@@ -248,8 +256,10 @@ export default {
 
     //表格点击详情
     openDetails(row,column){
-      console.log("表格点击详情")
-      console.log(row)
+      // 跳转到/productDetail，并传递参数商品编号
+      // this.$router.push({path: "/productDetail", query: {row: row}});
+      // console.log("表格点击详情");
+      // console.log(row)
     },
     //新增操作
     addProduct() {
@@ -293,31 +303,12 @@ export default {
     //改变分页的大小
     handleSizeChange(val) {
       this.pageSize = val;
-      let param = {
-        "pageNum": this.currentPage,
-        "pageSize": this.pageSize,
-        "searchValue": this.searchValue
-      }
-      this.getRequest('/productBasic/', param).then(resp => {
-        if (resp) {
-          this.tableData = resp.data.dataList;
-        }
-      })
+      this.search(false);
     },
     //改变页码
     handleCurrentChange(val) {
       this.currentPage = val;
-      let param = {
-        "pageNum": this.currentPage,
-        "pageSize": this.pageSize,
-        "searchValue": this.searchValue
-      }
-      this.getRequest('/productBasic/', param).then(resp => {
-        if (resp) {
-          this.tableData = resp.data.dataList;
-          console.log(resp);
-        }
-      })
+      this.search(false);
     },
     //提交插入/更新的商品信息
     onSubmit() {
@@ -326,7 +317,7 @@ export default {
             if (resp.isFlag){
               this.dialogTableVisible=false;
               this.$message("商品信息更新成功");
-              this.refresh();
+              this.refresh(true);
             }
         }
       })
@@ -340,7 +331,7 @@ export default {
     // 刷新列表
     refresh(){
       this.advanceSearch.stock="";
-      this.search();
+      this.search(true);
     }
   },
 
@@ -348,7 +339,7 @@ export default {
     //销量排序开关改变，对列表重新排序
     "advanceSearch.stock": {
       handler(curVal) {
-        this.search();
+        this.search(true);
       }
     }
   },
@@ -361,6 +352,9 @@ export default {
 
   data() {
     return {
+      //分页重置
+      reset:true,
+
       //dom元素编号
       isNeedId: true,
 

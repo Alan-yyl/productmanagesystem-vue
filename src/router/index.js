@@ -5,6 +5,8 @@ import Home from '../views/Home'
 import proBasic from '../views/pro/proBasic'
 import saleRecord from "@/views/sale/saleRecord";
 import customerBasic from "../views/customer/customerBasic";
+import realTimeData from "../views/sale/realTimeData"
+import productDetail from "../views/pro/productDetail"
 
 Vue.use(VueRouter)
 
@@ -27,7 +29,7 @@ const routes = [
                 path: '/proBasic',
                 name: '基本信息',
                 component: proBasic,
-            }
+            },
         ]
     },
     {
@@ -41,6 +43,11 @@ const routes = [
                 path: '/saleRecord',
                 name: '销售记录',
                 component: saleRecord,
+            },
+            {
+                path: '/realTimeData',
+                name: '统计数据',
+                component: realTimeData,
             }
         ]
     },
@@ -53,14 +60,21 @@ const routes = [
             ////子菜单一
             {
                 path: '/customerBasic',
-                name: '买家基本信息',
+                name: '基本信息',
                 component: customerBasic,
             }
         ]
     },
     {
         path: '*',
-        redirect:'/home'
+        redirect:'/home',
+        hidden: true,
+    },
+    {
+        path:'/productDetail',
+        name: "商品详情页",
+        component: productDetail,
+        hidden: true,
     }
 ]
 
